@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SparkAutoEDA Dashboard - Big Data Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-base: #0B0F19;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1F2937;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --text-main: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --primary: #6366F1;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-rose: #EF4444;
+      --accent-cyan: #06B6D4;
+      --card-radius: 14px;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    html.light {
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-surface-elevated: #F1F5F9;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.6);
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-dim: #94A3B8;
+      --primary: #4F46E5;
+      --primary-glow: rgba(79, 70, 229, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 80px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    html.light .navbar {
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .nav-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366F1 0%, #A855F7 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px var(--primary-glow);
+      font-size: 20px;
+    }
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #818CF8, #C084FC);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818CF8;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .theme-toggle-btn {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-toggle-btn:hover {
+      border-color: var(--border-focus);
+    }
+
+    /* Hero Banner */
+    .hero {
+      padding: 40px 0 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+    }
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .hero-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Score Card */
+    .health-score-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+    }
+    .health-score-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    .health-score-meta h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .health-score-meta p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* KPI Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 32px 0;
+    }
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+      opacity: 0.7;
+    }
+    .kpi-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .kpi-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      letter-spacing: -0.02em;
+    }
+    .kpi-subtext {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Tabs Navigation */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: var(--bg-surface-elevated);
+    }
+    .tab-btn.active {
+      color: var(--text-main);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .tab-badge {
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    /* Tab Panes */
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Alerts Box */
+    .alerts-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .alert-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 20px;
+      border-radius: var(--card-radius);
+      border: 1px solid transparent;
+      background: var(--bg-surface);
+    }
+    .alert-banner.CRITICAL {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.08);
+    }
+    .alert-banner.WARNING {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.08);
+    }
+    .alert-banner.INFO {
+      border-color: rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.08);
+    }
+    .alert-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+    .alert-body {
+      flex: 1;
+    }
+    .alert-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .alert-msg {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    /* Column Cards & Explorer */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+    }
+    .filter-chip {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .filter-chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .search-input {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      width: 280px;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .columns-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+      gap: 24px;
+    }
+    @media (max-width: 768px) {
+      .columns-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .column-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+    }
+    .column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .column-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+    }
+    .type-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .type-numerical {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818CF8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .type-categorical {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .type-datetime {
+      background: rgba(245, 158, 11, 0.15);
+      color: #FBBF24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .type-boolean {
+      background: rgba(6, 182, 212, 0.15);
+      color: #22D3EE;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    /* Stats Mini Table */
+    .mini-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .mini-stat-item {
+      background: var(--bg-surface-elevated);
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .mini-stat-key {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .mini-stat-val {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Chart Containers */
+    .chart-box {
+      width: 100%;
+      height: 180px;
+      position: relative;
+      margin-top: 4px;
+    }
+
+    /* Frequency Table */
+    .freq-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .freq-table th {
+      text-align: left;
+      padding: 6px 8px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .freq-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+    }
+    .bar-container {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366F1, #8B5CF6);
+      border-radius: 4px;
+    }
+
+    /* Heatmap Matrix */
+    .heatmap-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      overflow-x: auto;
+    }
+    .matrix-table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+    .matrix-cell {
+      width: 64px;
+      height: 48px;
+      text-align: center;
+      vertical-align: middle;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .matrix-header {
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: var(--bg-surface-elevated);
+    }
+
+    /* Data Preview Table */
+    .preview-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      overflow-x: auto;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .data-table th {
+      background: var(--bg-surface-elevated);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+      color: var(--text-muted);
+    }
+    .data-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .data-table tr:hover td {
+      background: var(--bg-surface-elevated);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 60px;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    .footer a {
+      color: #818CF8;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container nav-content">
+      <div class="brand">
+        <div class="brand-logo">⚡</div>
+        <div>
+          <span class="brand-title">SparkAutoEDA</span>
+          <span class="brand-badge">PySpark Distributed</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggle">
+          <span id="themeIcon">☀️</span>
+          <span id="themeLabel">Light Mode</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- Hero & Health Score -->
+    <header class="hero">
+      <div class="hero-grid">
+        <div>
+          <h1 class="hero-title">Automated Dataset Intelligence</h1>
+          <p class="hero-subtitle">
+            Distributed profiling analysis completed across 
+            <strong>{{ data.overview.partitions }}</strong> PySpark partitions.
+            {% if data.overview.is_sampled %}
+              <span style="color: var(--accent-amber); font-weight: 600;">(Sampled: {{ (data.overview.sample_ratio * 100)|round(1) }}%)</span>
+            {% else %}
+              <span style="color: var(--accent-emerald); font-weight: 600;">(100% Full Scan)</span>
+            {% endif %}
+          </p>
+        </div>
+        <div class="health-score-card">
+          <div class="health-score-circle" style="background: {{ data.quality.badge_color }};">
+            {{ data.quality.health_score }}
+          </div>
+          <div class="health-score-meta">
+            <h4>Data Health: {{ data.quality.health_status }}</h4>
+            <p>{{ data.quality.total_alerts }} Alerts flagged</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI Cards Grid -->
+    <section class="metrics-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Total Records</span>
+        <span class="kpi-value">{{ "{:,}".format(data.overview.total_rows) }}</span>
+        <span class="kpi-subtext">Distributed Spark RDD rows</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Columns Count</span>
+        <span class="kpi-value">{{ data.overview.total_columns }}</span>
+        <span class="kpi-subtext">{{ data.overview.numerical_columns }} num · {{ data.overview.categorical_columns }} cat · {{ data.overview.datetime_columns }} dt</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Est. Memory Size</span>
+        <span class="kpi-value">{{ data.overview.memory_info.estimated_readable }}</span>
+        <span class="kpi-subtext">~{{ data.overview.memory_info.estimated_bytes_per_row }} bytes per record</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Duplicate Rows</span>
+        <span class="kpi-value">{{ "{:,}".format(data.overview.duplicate_rows) }}</span>
+        <span class="kpi-subtext">{{ data.overview.duplicate_percentage }}% redundancy rate</span>
+      </div>
+    </section>
+
+    <!-- Alerts Section (if any) -->
+    {% if data.quality.alerts %}
+    <section class="alerts-container">
+      {% for alert in data.quality.alerts %}
+      <div class="alert-banner {{ alert.severity }}">
+        <div class="alert-icon">
+          {% if alert.severity == 'CRITICAL' %}🚨{% elif alert.severity == 'WARNING' %}⚠️{% else %}ℹ️{% endif %}
+        </div>
+        <div class="alert-body">
+          <div class="alert-title">{{ alert.severity }} · {{ alert.column }} ({{ alert.type }})</div>
+          <div class="alert-msg">{{ alert.message }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <!-- Tabs Navigation -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="tab-columns">
+        <span>🔍 Column Deep-Dives</span>
+        <span class="tab-badge">{{ data.overview.total_columns }}</span>
+      </button>
+      {% if data.correlations.matrix and data.correlations.matrix|length > 1 %}
+      <button class="tab-btn" data-tab="tab-correlations">
+        <span>📈 Correlation Heatmap</span>
+        <span class="tab-badge">{{ data.correlations.columns|length }}</span>
+      </button>
+      {% endif %}
+      <button class="tab-btn" data-tab="tab-missing">
+        <span>📉 Missingness Matrix</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-preview">
+        <span>📋 Sample Data</span>
+        <span class="tab-badge">{{ data.preview_rows|length }}</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: Column Deep-Dives -->
+    <section id="tab-columns" class="tab-pane active">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <button class="filter-chip active" data-filter="all">All ({{ data.overview.total_columns }})</button>
+          <button class="filter-chip" data-filter="numerical">Numerical ({{ data.overview.numerical_columns }})</button>
+          <button class="filter-chip" data-filter="categorical">Categorical ({{ data.overview.categorical_columns }})</button>
+          {% if data.overview.datetime_columns > 0 %}
+          <button class="filter-chip" data-filter="datetime">Datetime ({{ data.overview.datetime_columns }})</button>
+          {% endif %}
+          {% if data.overview.boolean_columns > 0 %}
+          <button class="filter-chip" data-filter="boolean">Boolean ({{ data.overview.boolean_columns }})</button>
+          {% endif %}
+        </div>
+        <input type="text" id="columnSearch" class="search-input" placeholder="Filter columns by name...">
+      </div>
+
+      <div class="columns-grid" id="columnsList">
+        {% for col_name in data.columns %}
+          {% set stats = data.column_stats[col_name] %}
+          {% set cat = stats.type_category %}
+          <div class="column-card" data-category="{{ cat }}" data-name="{{ col_name|lower }}">
+            <div class="column-header">
+              <span class="column-name">{{ col_name }}</span>
+              <span class="type-badge type-{{ cat }}">{{ stats.data_type }}</span>
+            </div>
+
+            <!-- Mini Summary Metrics -->
+            <div class="mini-stats-grid">
+              <div class="mini-stat-item">
+                <div class="mini-stat-key">Missing %</div>
+                <div class="mini-stat-val" style="color: {% if stats.missing_percentage > 20 %}var(--accent-rose){% else %}var(--accent-emerald){% endif %};">
+                  {{ stats.missing_percentage }}%
+                </div>
+              </div>
+              <div class="mini-stat-item">
+                <div class="mini-stat-key">Distinct</div>
+                <div class="mini-stat-val">{{ "{:,}".format(stats.distinct_count) }}</div>
+              </div>
+              <div class="mini-stat-item">
+                <div class="mini-stat-key">Distinct Ratio</div>
+                <div class="mini-stat-val">{{ (stats.distinct_ratio * 100)|round(1) }}%</div>
+              </div>
+
+              {% if cat == 'numerical' %}
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Mean</div>
+                  <div class="mini-stat-val">{{ "{:.2f}".format(stats.mean) if stats.mean is not none else 'N/A' }}</div>
+                </div>
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Median</div>
+                  <div class="mini-stat-val">{{ "{:.2f}".format(stats.median) if stats.median is not none else 'N/A' }}</div>
+                </div>
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Std Dev</div>
+                  <div class="mini-stat-val">{{ "{:.2f}".format(stats.stddev) if stats.stddev is not none else 'N/A' }}</div>
+                </div>
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Min / Max</div>
+                  <div class="mini-stat-val">{{ "{:.1f}".format(stats.min) if stats.min is not none else 'N/A' }} / {{ "{:.1f}".format(stats.max) if stats.max is not none else 'N/A' }}</div>
+                </div>
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">IQR</div>
+                  <div class="mini-stat-val">{{ "{:.2f}".format(stats.iqr) if stats.iqr is not none else 'N/A' }}</div>
+                </div>
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Outliers</div>
+                  <div class="mini-stat-val" style="color: {% if stats.outlier_percentage > 5 %}var(--accent-amber){% else %}var(--text-main){% endif %};">
+                    {{ stats.outlier_percentage }}%
+                  </div>
+                </div>
+              {% elif cat in ['categorical', 'boolean'] %}
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Min Length</div>
+                  <div class="mini-stat-val">{{ stats.min_length }}</div>
+                </div>
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Max Length</div>
+                  <div class="mini-stat-val">{{ stats.max_length }}</div>
+                </div>
+                <div class="mini-stat-item">
+                  <div class="mini-stat-key">Avg Length</div>
+                  <div class="mini-stat-val">{{ stats.avg_length }}</div>
+                </div>
+              {% elif cat == 'datetime' %}
+                <div class="mini-stat-item" style="grid-column: span 3;">
+                  <div class="mini-stat-key">Range</div>
+                  <div class="mini-stat-val" style="font-size: 0.8rem;">{{ stats.min_time }} → {{ stats.max_time }}</div>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Chart or Frequency Table -->
+            {% if cat == 'numerical' and stats.histogram and stats.histogram.counts %}
+              <div class="chart-box">
+                <canvas id="chart-{{ loop.index0 }}"></canvas>
+              </div>
+            {% elif cat in ['categorical', 'boolean'] and stats.top_values %}
+              <div>
+                <table class="freq-table">
+                  <thead>
+                    <tr>
+                      <th>Value</th>
+                      <th>Share</th>
+                      <th style="width: 100px;">Distribution</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in stats.top_values[:5] %}
+                    <tr>
+                      <td style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.value }}</td>
+                      <td>{{ item.percentage }}%</td>
+                      <td>
+                        <div class="bar-container">
+                          <div class="bar-fill" style="width: {{ item.percentage }}%;"></div>
+                        </div>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- TAB 2: Correlation Heatmap -->
+    {% if data.correlations.matrix and data.correlations.matrix|length > 1 %}
+    <section id="tab-correlations" class="tab-pane">
+      <div class="heatmap-card">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem; font-weight: 700;">Distributed Pearson Correlation Matrix</h3>
+        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 24px;">
+          Calculated distributedly on PySpark. Values range from -1.0 (inverse correlation) to +1.0 (direct correlation).
+        </p>
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="matrix-header"></th>
+              {% for c in data.correlations.columns %}
+                <th class="matrix-header">{{ c }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in data.correlations.matrix %}
+              {% set r_idx = loop.index0 %}
+              <tr>
+                <td class="matrix-header">{{ data.correlations.columns[r_idx] }}</td>
+                {% for val in row %}
+                  {% set c_idx = loop.index0 %}
+                  <td class="matrix-cell" style="background: {% if val > 0 %}rgba(99, 102, 241, {{ (val * 0.75 + 0.1)|round(2) }}){% elif val < 0 %}rgba(239, 68, 68, {{ (-val * 0.75 + 0.1)|round(2) }}){% else %}transparent{% endif %}; color: #fff;">
+                    {{ val }}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- TAB 3: Missingness Matrix -->
+    <section id="tab-missing" class="tab-pane">
+      <div class="preview-card">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem; font-weight: 700;">Missing Value Rates Across Columns</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Column Name</th>
+              <th>Data Type</th>
+              <th>Missing Count</th>
+              <th>Missing Percentage</th>
+              <th style="width: 200px;">Missing Visual</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for col_name in data.columns %}
+              {% set st = data.column_stats[col_name] %}
+              <tr>
+                <td><strong>{{ col_name }}</strong></td>
+                <td><span class="type-badge type-{{ st.type_category }}">{{ st.data_type }}</span></td>
+                <td>{{ "{:,}".format(st.missing_count) }}</td>
+                <td>
+                  <span style="font-weight: 700; color: {% if st.missing_percentage > 20 %}var(--accent-rose){% elif st.missing_percentage > 5 %}var(--accent-amber){% else %}var(--accent-emerald){% endif %};">
+                    {{ st.missing_percentage }}%
+                  </span>
+                </td>
+                <td>
+                  <div class="bar-container">
+                    <div class="bar-fill" style="width: {{ st.missing_percentage }}%; background: {% if st.missing_percentage > 20 %}var(--accent-rose){% elif st.missing_percentage > 5 %}var(--accent-amber){% else %}var(--accent-emerald){% endif %};"></div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: Sample Data Preview -->
+    <section id="tab-preview" class="tab-pane">
+      <div class="preview-card">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem; font-weight: 700;">Sample Records (First {{ data.preview_rows|length }} Rows)</h3>
+        {% if data.preview_rows %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              {% for col_name in data.columns %}
+                <th>{{ col_name }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in data.preview_rows %}
+            <tr>
+              {% for col_name in data.columns %}
+                <td>{{ row[col_name] if row[col_name] is not none else '<span style="color: var(--text-dim);">null</span>' }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--text-muted);">No preview rows available.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <footer class="footer">
+      Generated with ⚡ <strong>SparkAutoEDA</strong> &middot; Distributed Big Data Profiling Engine &middot;
+      <a href="https://github.com/open-source/spark-auto-eda" target="_blank" rel="noopener">GitHub Project</a>
+    </footer>
+  </main>
+
+  <script>
+    // Theme toggle
+    const toggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeLabel = document.getElementById('themeLabel');
+    const htmlEl = document.documentElement;
+
+    toggleBtn.addEventListener('click', () => {
+      if (htmlEl.classList.contains('dark')) {
+        htmlEl.classList.remove('dark');
+        htmlEl.classList.add('light');
+        themeIcon.textContent = '🌙';
+        themeLabel.textContent = 'Dark Mode';
+      } else {
+        htmlEl.classList.remove('light');
+        htmlEl.classList.add('dark');
+        themeIcon.textContent = '☀️';
+        themeLabel.textContent = 'Light Mode';
+      }
+    });
+
+    // Tab switching
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-tab');
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabPanes.forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const targetPane = document.getElementById(targetId);
+        if (targetPane) targetPane.classList.add('active');
+      });
+    });
+
+    // Column filtering and searching
+    const filterChips = document.querySelectorAll('.filter-chip');
+    const searchInput = document.getElementById('columnSearch');
+    const columnCards = document.querySelectorAll('.column-card');
+
+    let currentFilter = 'all';
+    let currentSearch = '';
+
+    function applyColumnFilters() {
+      columnCards.forEach(card => {
+        const cat = card.getAttribute('data-category');
+        const name = card.getAttribute('data-name');
+        const matchesCat = (currentFilter === 'all' || cat === currentFilter);
+        const matchesSearch = name.includes(currentSearch);
+
+        if (matchesCat && matchesSearch) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.getAttribute('data-filter');
+        applyColumnFilters();
+      });
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      currentSearch = e.target.value.toLowerCase().trim();
+      applyColumnFilters();
+    });
+
+    // Render Chart.js distribution charts for numerical columns
+    const chartConfigs = {{ chart_payload|safe }};
+    chartConfigs.forEach(cfg => {
+      const el = document.getElementById(cfg.id);
+      if (el && window.Chart) {
+        new Chart(el, {
+          type: 'bar',
+          data: {
+            labels: cfg.labels,
+            datasets: [{
+              data: cfg.counts,
+              backgroundColor: 'rgba(99, 102, 241, 0.7)',
+              hoverBackgroundColor: 'rgba(129, 140, 248, 0.9)',
+              borderRadius: 4,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#1F2937',
+                titleColor: '#F9FAFB',
+                bodyColor: '#D1D5DB',
+                displayColors: false,
+              }
+            },
+            scales: {
+              x: { display: false },
+              y: {
+                ticks: { color: '#6B7280', font: { size: 9 } },
+                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+              }
+            }
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

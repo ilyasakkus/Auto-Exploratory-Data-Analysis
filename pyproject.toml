@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spark-auto-eda"
+version = "0.1.0"
+description = "Lightning-fast, distributed automated Exploratory Data Analysis & visual reporting for multi-million-row PySpark DataFrames."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "SparkAutoEDA Contributors" }
+]
+keywords = [
+    "pyspark",
+    "eda",
+    "exploratory-data-analysis",
+    "data-profiling",
+    "big-data",
+    "spark",
+    "dashboard",
+    "data-quality",
+    "apache-spark"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Quality Assurance"
+]
+
+dependencies = [
+    "pyspark>=3.2.0",
+    "jinja2>=3.0.0",
+    "pandas>=1.3.0",
+    "numpy>=1.20.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0"
+]
+
+[project.scripts]
+spark-auto-eda = "spark_auto_eda.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/open-source/spark-auto-eda"
+Documentation = "https://github.com/open-source/spark-auto-eda#readme"
+Repository = "https://github.com/open-source/spark-auto-eda.git"
+Issues = "https://github.com/open-source/spark-auto-eda/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["spark_auto_eda*"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning"
+]
